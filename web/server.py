@@ -30,37 +30,114 @@ def login():
     return render_template('login.html')
 
 
-@app.route('/create_server', methods=['POST'])
+@app.route('/users', methods=['POST'])
+def create_user():
+    username = request.form['username']
+    password = request.form['password']
+    email = request.form['email']
+    name = request.form['name']
+    lastname = request.form['lastname']
+    status = 'Online'
+
+    user = entities.User(username=username, name=name, lastname=lastname, password=password, email=email, status=status)
+
+    db_session = db.getSession(engine)
+    db_session.add(user)
+    db_session.commit()
+
+    if username:
+        return redirect('/')
+    else:
+        return redirect('/')
+
+
+@app.route('/current_user', methods=['GET'])
+def current_user():
+    db_session = db.getSession(engine)
+    user = db_session.query(entities.User).filter(entities.User.id == session['logged_user_id']).first()
+    return Response(json.dumps(user, cls=connector.AlchemyEncoder), mimetype='application/json')
+
+
+@app.route('/users/<id>', methods=['GET'])
+def get_users(id):
+    db_session = db.getSession(engine)
+    users = db_session.query(entities.User).filter(entities.User.id == id)
+
+    data = []
+    for user in users:
+        data.append(user)
+    return Response(json.dumps(data, cls=connector.AlchemyEncoder), mimetype="application/json")
+
+
+@app.route('/users/<id>', methods=['PUT'])
+def update_user(id):
+    db_session = db.getSession(engine)
+    users = db_session.query(entities.User).filter(entities.User.id == id)
+
+    for user in users:
+        user.username = request.form['username']
+        user.password = request.form['password']
+        user.name = request.form['name']
+        user.email = request.form['email']
+        user.lastname = request.form['lastname']
+        user.status = request.form['status']
+        db_session.add(user)
+
+    db_session.commit()
+    return 'SUCCESS'
+
+
+@app.route('/users/<id>', methods=['DELETE'])
+def delete_users(id):
+    db_session = db.getSession(engine)
+    user = db_session.query(entities.User).filter(entities.User.id == id).first()
+
+    db_session.delete(user)
+    db_session.commit()
+
+
+@app.route('/server', methods=['POST'])
 def create_server():
-    server = entities.Server()
 
-    session = db.getSession()
-    session.add(server)
-    session.commit()
+    info = request.get_json(silent=True)
+
+    db_session = db.getSession(engine)
+
+    admin = db_session.query(entities.User).filter(entities.User.id == info['admin']).first()
+    server = entities.Message(player_1=admin, status=info['status'], count=1)
+
+    session['current_server_id'] = server.id
+
+    db_session.add(server)
+    db_session.commit()
 
 
-@app.route('/get_server/<id>', methods=['GET'])
+@app.route('/current_server', methods=['GET'])
+def current_server():
+    db_session = db.getSession(engine)
+    server = db_session.query(entities.Server).filter(entities.Server.id == session['current_server_id']).first()
+    return Response(json.dumps(server, cls=connector.AlchemyEncoder), mimetype='application/json')
+
+"""
+@app.route('/server/<id>', methods=['GET'])
 def get_server(id):
     db_session = db.getSession(engine)
     servers = db_session.query(entities.Server).filter(entities.Server.id == id)
+"""
 
 
-@app.route('/get_server/<id>', methods=['PUT'])
+@app.route('/server/<id>', methods=['PUT'])
 def update_server(id):
+    info = request.get_json(silent=True)
+
     db_session = db.getSession(engine)
-    servers = db_session.query(entities.Server).filter(entities.Server.id == id)
 
-    info = request.form['status'] + "," + request.form['x'] + "," + request.form['y']
+    server = db_session.query(entities.Server).filter(entities.Server.id == id).first()
+    server.status = info['ststus']
 
-    for server in servers:
-        if server.p1_id == id:
-            server.p1_info = info
-        elif server.p2_id == id:
-            server.p2_info = info
-        elif server.p3_id == id:
-            server.p3_info = info
-        elif server.p4_id == id:
-            server.p4_info = info
+    db_session.add(server)
+    db_session.commit()
+
 
 
 if __name__ == '__main__':

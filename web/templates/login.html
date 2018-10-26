@@ -20,13 +20,16 @@ License URL: http://creativecommons.org/licenses/by/3.0/
 <body>
 	<div class="padding-all">
 		<div class="header">
-			<h1><img src="static/images/5.png" alt=" "> Gaming Login Form</h1>
+			<h1><img src="static/images/5.png" alt=" ">Registrate ahora</h1>
 		</div>
 
 		<div class="design-w3l">
 			<div class="mail-form-agile">
-				<form action="#" method="post">
-					<input type="text" name="name" placeholder="User Name  or  email..." required=""/>
+				<form action="users" method="post">
+					<input type="text" name="name" placeholder="Nombre" required=""/>
+                    <input type="text" name="lastname" placeholder="Apellido" required=""/>
+					<input type="text" name="username" placeholder="Nombre de usuario" required=""/>
+                    <input type="text" name="email" placeholder="E-mail" required=""/>
 					<input type="password"  name="password" class="padding" placeholder="Password" required=""/>
 					<input type="submit" value="submit">
 				</form>
