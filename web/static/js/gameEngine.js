@@ -1,72 +1,35 @@
-
-var current_user_id;
-var current_server_id;
-
-function getPosition()
+$(function()
 {
+    var canvas = document.getElementById("gameWindow");;
+    var ctx = canvas.getContext("2d");
 
-}
+    var p1_pos = [0, 0]
+    var p2_pos = [0, 0]
+    var p3_pos = [0, 0]
+    var p4_pos = [0, 0]
 
-
-function createServer()
-{
-    $.ajax({
-        url: '/server',
-        type: 'POST',
-        dataType: 'json',
-        contentType: 'application/json',
-        data: JSON.stringify({
-            "admin": current_user_id,
-            "status": "Online"
-    	})
-	});
-
-	$.getJSON("/current_server", function(data)
+    function assetsManager()
     {
-        current_server_id = data['id'];
-        $('#currentServer').html(data['id']);
-    });
-
-}
-
-
-function findServer(id)
-{
-    $.ajax({
-        url: '/server/' + current_server_id,
-        type: 'PUT',
-        dataType: 'json',
-        contentType: 'application/json',
-        data: JSON.stringify({
-            "pos_x": "Posicion en x",
-            "pos_y": "Posicion en y"
-    	})
-	});
-
-	$.getJSON("/current_server", function(data)
-    {
-        current_server_id = data['id'];
-        $('#currentServer').html(data['id']);
-    });
-
-}
-
-
-$.getJSON("/server", function(data)
-{
-    var i = 0;
-    $.each(data, function()
-    {
-        user_from = current_from_id;
-        user_to = data[i]['id'];
-
-        if (data[i]['id'] != current_from_id)
+        base_image = new Image();
+        base_image.src = 'static/images/p1.png';
+        base_image.onload = function()
         {
-        var text ="<li class='contact' onclick='get_message(User_from., User_to.)'><div class='wrap'><div class='meta'><p class='name'>Name.</p><p class='preview'>Text.</p></div></div></li>";
-        $('.contact_list').append(text.replace("Name.", data[i]['username']).replace("User_from.", user_from).replace("User_to.", user_to));
+            ctx.drawImage(base_image, 0, 0);
         }
-        i = i + 1;
-    })
+    }
 
-});
+    function drawCharacter()
+    {
+        ctx.beginPath();
 
+        ctx.closePath();
+    }
+
+    function onRender()
+    {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        assetsManager();
+    }
+
+    setInterval(onRender, 10)
+};

@@ -30,6 +30,11 @@ def login():
     return render_template('login.html')
 
 
+@app.route('/game', methods=['GET'])
+def game():
+    return render_template('game.html')
+
+
 @app.route('/users', methods=['POST'])
 def create_user():
     username = request.form['username']
