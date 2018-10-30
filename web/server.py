@@ -22,17 +22,25 @@ def index():
     return render_template('index.html')
 
 
-@app.route('/login', methods=['GET'])
-def login():
+@app.route('/sign_in', methods=['GET'])
+def sign_in():
     if 'logged_user_id' in session:
         redirect('/')
 
-    return render_template('login.html')
+    return render_template('sign_in.html')
 
 
-@app.route('/game', methods=['GET'])
-def game():
-    return render_template('game.html')
+@app.route('/log_in', methods=['GET'])
+def log_in():
+    if 'logged_user_id' in session:
+        redirect('/')
+
+    return render_template('log_in.html')
+
+
+@app.route('/editor', methods=['GET'])
+def editor():
+    return render_template('editor.html')
 
 
 @app.route('/current_user', methods=['GET'])
