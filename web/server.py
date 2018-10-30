@@ -120,28 +120,34 @@ def delete_users(id):
 
 
 
+"""
+@app.route('/current_server', methods=['GET'])
+def current_server():
+    db_session = db.getSession(engine)
+    server = db_session.query(entities.Server).filter(entities.Server.id == session['current_server_id']).first()
+    return Response(json.dumps(server, cls=connector.AlchemyEncoder), mimetype='application/json')
 
-@app.route('/server', methods=['POST'])
-def create_server():
+"""
+
+
+
+
+
+@app.route('/document', methods=['POST'])
+def create_document():
 
     info = request.get_json(silent=True)
 
     db_session = db.getSession(engine)
 
     admin = db_session.query(entities.User).filter(entities.User.id == info['admin']).first()
-    server = entities.Message(player_1=admin, status=info['status'], count=1)
+    document = entities.Document(player_1=admin, status=info['status'], count=1)
 
-    session['current_server_id'] = server.id
+    session['current_document_id'] = server.id
 
-    db_session.add(server)
+    db_session.add(document)
     db_session.commit()
 
-
-@app.route('/current_server', methods=['GET'])
-def current_server():
-    db_session = db.getSession(engine)
-    server = db_session.query(entities.Server).filter(entities.Server.id == session['current_server_id']).first()
-    return Response(json.dumps(server, cls=connector.AlchemyEncoder), mimetype='application/json')
 
 """
 @app.route('/server/<id>', methods=['GET'])

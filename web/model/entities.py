@@ -15,10 +15,10 @@ class User(connector.Manager.Base):
     status = Column(String(12))
 
 
-class Message(connector.Manager.Base):
-    __tablename__ = 'messages'
-    id = Column(Integer, Sequence('message_id_seq'), primary_key=True)
-    content = Column(String(500))
+class Document(connector.Manager.Base):
+    __tablename__ = 'document'
+    id = Column(Integer, Sequence('document_id_seq'), primary_key=True)
+    content = Column(String(10000))
     sent_on = Column(DateTime(timezone=True))
     user_from_id = Column(Integer, ForeignKey('users.id'))
     user_to_id = Column(Integer, ForeignKey('users.id'))

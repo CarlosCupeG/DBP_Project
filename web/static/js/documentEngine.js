@@ -49,6 +49,50 @@ function onKeyUp(evObject) {
 
 }
 
+
+
+
+
+function selectElementText(el, win) {
+    win = win || window;
+    var doc = win.document, sel, range;
+    if (win.getSelection && doc.createRange) {
+        sel = win.getSelection();
+        range = doc.createRange();
+        range.selectNodeContents(el);
+        sel.removeAllRanges();
+        sel.addRange(range);
+    } else if (doc.body.createTextRange) {
+        range = doc.body.createTextRange();
+        range.moveToElementText(el);
+        range.select();
+    }
+}
+
+selectElementText(document.getElementById("someElement"));
+selectElementText(elementInIframe, iframe.contentWindow);
+
+
+
+function seleccionaTexto(element){
+    var doc = document,
+    text = doc.getElementById(element),
+    range,
+    selection;
+    if(doc.body.createTextRange){ //ms
+        range = doc.body.createTextRange();
+        range.moveToElementText(text);
+        range.select();
+    }else if(window.getSelection){ //all others
+        selection = window.getSelection();
+        range = doc.createRange();
+        range.selectNodeContents(text);
+        selection.removeAllRanges();
+     selection.addRange(range);
+    }
+}
+
+
 /*
 
 window.onload = function() { document.onkeypress = mostrarInformacionCaracter;

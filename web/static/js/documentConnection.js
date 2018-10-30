@@ -1,6 +1,6 @@
 
 var current_user_id;
-var current_server_id;
+var current_document_id;
 
 function getPosition()
 {
@@ -8,10 +8,10 @@ function getPosition()
 }
 
 
-function createServer()
+function createDocument()
 {
     $.ajax({
-        url: '/server',
+        url: '/document',
         type: 'POST',
         dataType: 'json',
         contentType: 'application/json',
@@ -21,9 +21,9 @@ function createServer()
     	})
 	});
 
-	$.getJSON("/current_server", function(data)
+	$.getJSON("/current_document", function(data)
     {
-        current_server_id = data['id'];
+        current_document_id = data['id'];
         $('#currentServer').html(data['id']);
     });
 
@@ -33,7 +33,7 @@ function createServer()
 function findServer(id)
 {
     $.ajax({
-        url: '/server/' + current_server_id,
+        url: '/server/' + current_document_id,
         type: 'PUT',
         dataType: 'json',
         contentType: 'application/json',
@@ -45,7 +45,7 @@ function findServer(id)
 
 	$.getJSON("/server/" + id, function(data)
     {
-        current_server_id = data['id'];
+        current_document_id = data['id'];
         $('#currentServer').html(data['id']);
     });
 
