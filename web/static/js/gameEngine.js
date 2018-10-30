@@ -1,35 +1,97 @@
-$(function()
+var controlledEvent = false;
+var controlledKey = false;
+var msg = ''
+
+window.onload = function() {
+    document.onkeypress = onKeyPress;
+    document.onkeydown = onKeyDown
+    document.onkeyup = onKeyUp;
+}
+
+function onKeyPress(evObject) {
+
+    var character = String.fromCharCode(evObject.which);
+
+    if (evObject.which!=0 && evObject.which!=8) {
+        ;
+        if (evObject.which==32) {
+            msg += "&nbsp" ; }
+        else if (evObject.which==13) {
+            msg += "<br/>"; }
+        else if (evObject.which==60) {
+            msg += "<span><</span>"; }
+        else {
+            msg += character; }
+        control.innerHTML = msg; }
+    controlledEvent=true;
+}
+
+
+function onKeyDown(evObject) {
+
+    var key = evObject.keyCode;
+
+    if (key == 8) {
+        if (msg.substring(msg.length - 5, msg.length) == "<br/>" || msg.substring(msg.length - 5, msg.length) == "&nbsp") {
+            msg = msg.substring(0, msg.length - 5); }
+        else if (msg.substring(msg.length - 14, msg.length) == "<span><</span>") {
+            msg = msg.substring(0, msg.length - 14); }
+        else {
+            msg = msg.substring(0, msg.length - 1); }
+
+        control.innerHTML = msg; }
+    console.log(msg);
+    controlledEvent=true;
+}
+
+
+function onKeyUp(evObject) {
+
+}
+
+/*
+
+window.onload = function() { document.onkeypress = mostrarInformacionCaracter;
+
+document.onkeyup = mostrarInformacionTecla; }
+
+function mostrarInformacionCaracter(evObject)
 {
-    var canvas = document.getElementById("gameWindow");;
-    var ctx = canvas.getContext("2d");
+    var msg = ''; var elCaracter = String.fromCharCode(evObject.which);
 
-    var p1_pos = [0, 0]
-    var p2_pos = [0, 0]
-    var p3_pos = [0, 0]
-    var p4_pos = [0, 0]
+    if (evObject.which!=0 && evObject.which!=13) {
 
-    function assetsManager()
-    {
-        base_image = new Image();
-        base_image.src = 'static/images/p1.png';
-        base_image.onload = function()
-        {
-            ctx.drawImage(base_image, 0, 0);
-        }
-    }
+    msg = 'Tecla pulsada: ' + elCaracter;
 
-    function drawCharacter()
-    {
-        ctx.beginPath();
+    control.innerHTML += msg + '-----------------------------<br/>'; }
 
-        ctx.closePath();
-    }
+    else { msg = 'Pulsada tecla especial';
 
-    function onRender()
-    {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        assetsManager();
-    }
+    control.innerHTML += msg + '-----------------------------<br/>';}
 
-    setInterval(onRender, 10)
-};
+    controlledEvent=true;
+}
+
+function mostrarInformacionTecla(evObject)
+{
+    var msg = ''; var teclaPulsada = evObject.keyCode;
+
+    if (teclaPulsada == 20) { msg = 'Pulsado caps lock (act/des mayúsculas)';}
+
+    else if (teclaPulsada == 16) { msg = 'Pulsado shift';}
+
+    else if (controlledEvent == false) { msg = 'Pulsada tecla especial';}
+
+    if (msg) {control.innerHTML += msg + '-----------------------------<br/>';}
+
+    controlledEvent = false;
+
+}
+
+*/
+
+
+
+//$(function()
+//{
+//});

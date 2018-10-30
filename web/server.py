@@ -35,32 +35,35 @@ def game():
     return render_template('game.html')
 
 
-@app.route('/users', methods=['POST'])
-def create_user():
-    username = request.form['username']
-    password = request.form['password']
-    email = request.form['email']
-    name = request.form['name']
-    lastname = request.form['lastname']
-    status = 'Online'
-
-    user = entities.User(username=username, name=name, lastname=lastname, password=password, email=email, status=status)
-
-    db_session = db.getSession(engine)
-    db_session.add(user)
-    db_session.commit()
-
-    if username:
-        return redirect('/')
-    else:
-        return redirect('/')
-
-
 @app.route('/current_user', methods=['GET'])
 def current_user():
     db_session = db.getSession(engine)
     user = db_session.query(entities.User).filter(entities.User.id == session['logged_user_id']).first()
     return Response(json.dumps(user, cls=connector.AlchemyEncoder), mimetype='application/json')
+
+
+@app.route('/users', methods=['POST'])
+def create_user():
+    username = request.form['username']
+    password = request.form['password']
+    email = request.form['email']
+    first_name = request.form['first_name']
+    last_name = request.form['last_name']
+    status = 'Offline'
+
+    user = entities.User(first_name=first_name,
+                         last_name=last_name,
+                         username=username,
+                         password=password,
+                         email=email,
+                         status=status)
+
+    db_session = db.getSession(engine)
+    db_session.add(user)
+    db_session.commit()
+
+    if username and password:
+        return redirect('/')
 
 
 @app.route('/users/<id>', methods=['GET'])
@@ -80,12 +83,18 @@ def update_user(id):
     users = db_session.query(entities.User).filter(entities.User.id == id)
 
     for user in users:
-        user.username = request.form['username']
-        user.password = request.form['password']
-        user.name = request.form['name']
-        user.email = request.form['email']
-        user.lastname = request.form['lastname']
-        user.status = request.form['status']
+        if request.form['first_name']:
+            user.first_name = request.form['first_name']
+        if request.form['last_name']:
+            user.last_name = request.form['last_name']
+        if request.form['username']:
+            user.username = request.form['username']
+        if request.form['password']:
+            user.password = request.form['password']
+        if request.form['email']:
+            user.email = request.form['email']
+        if request.form['status']:
+            user.status = request.form['status']
         db_session.add(user)
 
     db_session.commit()
@@ -99,6 +108,9 @@ def delete_users(id):
 
     db_session.delete(user)
     db_session.commit()
+
+
+
 
 
 @app.route('/server', methods=['POST'])
@@ -142,7 +154,6 @@ def update_server(id):
 
     db_session.add(server)
     db_session.commit()
-
 
 
 if __name__ == '__main__':
