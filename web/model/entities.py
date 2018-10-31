@@ -1,7 +1,15 @@
-from sqlalchemy import Column, Integer, String, Sequence, DateTime, ForeignKey
-from sqlalchemy.orm import relationship
-
+from sqlalchemy import Column, Integer, String, Sequence, DateTime, ForeignKey, ARRAY
+from sqlalchemy.orm import relationship, backref
+from sqlalchemy.ext.declarative import declarative_base
 from web.database import connector
+
+
+class Document(connector.Manager.Base):
+    __tablename__ = 'document'
+    id = Column(Integer, Sequence('document_id_seq'), primary_key=True)
+    name = Column(String(100))
+    status = Column(Integer)
+    content = Column(String(10000))
 
 
 class User(connector.Manager.Base):
@@ -13,14 +21,5 @@ class User(connector.Manager.Base):
     password = Column(String(12))
     username = Column(String(12))
     status = Column(String(12))
-
-
-class Document(connector.Manager.Base):
-    __tablename__ = 'document'
-    id = Column(Integer, Sequence('document_id_seq'), primary_key=True)
-    content = Column(String(10000))
-    sent_on = Column(DateTime(timezone=True))
-    user_from_id = Column(Integer, ForeignKey('users.id'))
-    user_to_id = Column(Integer, ForeignKey('users.id'))
-    user_from = relationship(User, foreign_keys=[user_from_id])
-    user_to = relationship(User, foreign_keys=[user_to_id])
+    document_id = Column(Integer, ForeignKey('document.id'))
+    document = relationship(Document, backref=backref('user', uselist=True))
