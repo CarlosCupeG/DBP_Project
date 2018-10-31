@@ -185,8 +185,6 @@ def get_all_documents():
     return Response(json.dumps(data, cls=connector.AlchemyEncoder), mimetype="application/json")
 
 
-
-
 @app.route('/document/<id>', methods=['GET'])
 def get_document(id):
     db_session = db.getSession(engine)
