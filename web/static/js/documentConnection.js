@@ -1,16 +1,4 @@
 
-var current_user_id;
-var current_document_id;
-
-$.getJSON("/current_user", function(data)
-{
-    current_user_id = data['id'];
-    //$('#currentUser').html(data['username']);
-});
-
-
-
-
 var documentTemplate =
         '<div class="col-md-4">' +
           '<div class="card mb-4 shadow-sm">' +
@@ -28,27 +16,51 @@ var documentTemplate =
           '</div>' +
         '</div>';
 
+var current_user_id;
+var current_document_id;
 
-function getPosition()
+$.getJSON("/current_user", function(data)
 {
+    current_user_id = data['id'];
+    //$('#currentUser').html(data['username']);
+    console.log(current_user_id);
+    documentUser();
+});
 
+
+$('#exampleModal').on('show.bs.modal')
+
+
+function documentUser()
+{
+    $.getJSON("/document_user/" + String(current_user_id), function(data)
+    {
+        console.log("/document_user/" + String(current_user_id));
+        var i = 0;
+        $.each(data, function()
+        {
+            documentContainer.innerHTML += documentTemplate.replace("Text.", data[i].name).replace("Date.", "HOY");
+            i++;
+        });
+    });
 }
 
 
 function createDocument()
 {
+    var name = document.getElementById('recipient-name').value;
+    console.log(name);
     $.ajax({
         url: '/document',
         type: 'POST',
         dataType: 'json',
         contentType: 'application/json',
         data: JSON.stringify({
-            "admin": current_user_id,
-            "name": "holasdadadsaddddddddd",
-            "status": 1
+            "user": current_user_id,
+            "name": name,
     	})
 	});
-    //documentContainer.innerHTML += documentTemplate.replace("Text.", "Hola").replace("Date.", "HOY");
+
 }
 
 

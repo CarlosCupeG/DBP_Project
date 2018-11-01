@@ -4,6 +4,7 @@ from web.database import connector
 from web.model import entities
 
 import json
+import datetime
 
 db = connector.Manager()
 engine = db.createEngine()
@@ -165,12 +166,14 @@ def create_document():
     info = request.get_json(silent=True)
 
     db_session = db.getSession(engine)
-    admin = db_session.query(entities.User).filter(entities.User.id == info['admin']).first()
+    user = db_session.query(entities.User).filter(entities.User.id == info['user']).first()
 
-    document = entities.Document(status=info['status'])
-    admin.document = document
+    document = entities.Document(name=info['name'],
+                                 date=datetime.datetime.utcnow())
 
+    document.users.append(user)
     db_session.add(document)
+
     db_session.commit()
     return redirect('/')
 
@@ -182,6 +185,18 @@ def get_all_documents():
     data = []
     for document in documents:
         data.append(document)
+    return Response(json.dumps(data, cls=connector.AlchemyEncoder), mimetype="application/json")
+
+
+@app.route('/document_user/<user_id>', methods=['GET'])
+def get_document_by_user(user_id):
+    db_session = db.getSession(engine)
+    documents = db_session.query(entities.Document).filter(entities.Document.users.any(entities.User.id == user_id))
+    print(user_id)
+    data = []
+    for document in documents:
+        data.append(document)
+        print(document.id)
     return Response(json.dumps(data, cls=connector.AlchemyEncoder), mimetype="application/json")
 
 
