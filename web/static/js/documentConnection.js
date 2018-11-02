@@ -1,4 +1,3 @@
-
 var documentTemplate =
         '<div class="col-md-4">' +
           '<div class="card mb-4 shadow-sm">' +
@@ -7,14 +6,16 @@ var documentTemplate =
               '<p class="card-text">Text.</p>' +
               '<div class="d-flex justify-content-between align-items-center">' +
                 '<div class="btn-group">' +
-                  '<button type="button" class="btn btn-sm btn-outline-secondary">View</button>' +
-                  '<button type="button" class="btn btn-sm btn-outline-secondary">Edit</button>' +
+                  '<button type="button" class="btn btn-sm btn-outline-secondary" onclick="currentDocument(\'Id.\')">Edit</button>' +
+                  '<button type="button" class="btn btn-sm btn-outline-secondary" onclick="deleteDocument(\'Id.\')">Delete</button>'
                 '</div>' +
                 '<small class="text-muted">Date.</small>' +
               '</div>' +
             '</div>' +
           '</div>' +
         '</div>';
+
+
 
 var current_user_id;
 var current_document_id;
@@ -23,23 +24,19 @@ $.getJSON("/current_user", function(data)
 {
     current_user_id = data['id'];
     //$('#currentUser').html(data['username']);
-    console.log(current_user_id);
     documentUser();
 });
 
-
 $('#exampleModal').on('show.bs.modal')
-
 
 function documentUser()
 {
     $.getJSON("/document_user/" + String(current_user_id), function(data)
     {
-        console.log("/document_user/" + String(current_user_id));
         var i = 0;
         $.each(data, function()
         {
-            documentContainer.innerHTML += documentTemplate.replace("Text.", data[i].name).replace("Date.", "HOY");
+            documentContainer.innerHTML += documentTemplate.replace("Text.", data[i].name).replace("Date.", data[i].date).replace("Id.", data[i].id);
             i++;
         });
     });
@@ -48,8 +45,13 @@ function documentUser()
 
 function createDocument()
 {
-    var name = document.getElementById('recipient-name').value;
-    console.log(name);
+    var name = "";
+    //var name = $('#recipient-name').val();
+
+    while (name == "")
+    {
+         name = document.getElementById("recipient-name").value;
+    }
     $.ajax({
         url: '/document',
         type: 'POST',
@@ -57,22 +59,31 @@ function createDocument()
         contentType: 'application/json',
         data: JSON.stringify({
             "user": current_user_id,
-            "name": name,
+            "name": name
     	})
 	});
-
 }
 
 
-function getDocument()
+function deleteDocument(id)
 {
+    $.ajax({
+        url: '/document/' + id,
+        type: 'DELETE',
+        dataType: 'json',
+        contentType: 'application/json',
+        success: function(data) {
+            $('#documentContainer').text("");
+	        location.reload();
+        }
+	});
 }
 
 
 function findDocument(id)
 {
     $.ajax({
-        url: '/document/' + current_document_id,
+        url: '/document/' + id,
         type: 'PUT',
         dataType: 'json',
         contentType: 'application/json',
@@ -86,31 +97,15 @@ function findDocument(id)
 }
 
 
-function currentDocument()
+function currentDocument(id)
 {
-    $.getJSON("/current_document", function(data)
-    {
-        current_document_id = data['id'];
-        //$('#currentServer').html(data['id']);
-    });
+    $.ajax({
+        url: '/current_document',
+        type: 'POST',
+        dataType: 'json',
+        contentType: 'application/json',
+        data: JSON.stringify({
+            document: id
+    	})
+	});
 }
-
-
-$.getJSON("/server", function(data)
-{
-    var i = 0;
-    $.each(data, function()
-    {
-        user_from = current_from_id;
-        user_to = data[i]['id'];
-
-        if (data[i]['id'] != current_from_id)
-        {
-        var text ="<li class='contact' onclick='get_message(User_from., User_to.)'><div class='wrap'><div class='meta'><p class='name'>Name.</p><p class='preview'>Text.</p></div></div></li>";
-        $('.contact_list').append(text.replace("Name.", data[i]['username']).replace("User_from.", user_from).replace("User_to.", user_to));
-        }
-        i = i + 1;
-    })
-
-});
-

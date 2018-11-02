@@ -154,22 +154,22 @@ def do_document():
     return render_template('control.html')
 
 
-@app.route('/current_document', methods=['GET'])
+@app.route('/current_document', methods=['POST'])
 def current_document():
+    info = request.get_json(silent=True)
+
     db_session = db.getSession(engine)
-    document = db_session.query(entities.Document).filter(entities.Document.id == session['current_document_id']).first()
-    return Response(json.dumps(document, cls=connector.AlchemyEncoder), mimetype='application/json')
+    session['current_document_id'] = info['document']
+
+    return redirect('/')
 
 
 @app.route('/document', methods=['POST'])
 def create_document():
     info = request.get_json(silent=True)
-
     db_session = db.getSession(engine)
     user = db_session.query(entities.User).filter(entities.User.id == info['user']).first()
-
-    document = entities.Document(name=info['name'],
-                                 date=datetime.datetime.utcnow())
+    document = entities.Document(name=info['name'])
 
     document.users.append(user)
     db_session.add(document)
@@ -192,11 +192,9 @@ def get_all_documents():
 def get_document_by_user(user_id):
     db_session = db.getSession(engine)
     documents = db_session.query(entities.Document).filter(entities.Document.users.any(entities.User.id == user_id))
-    print(user_id)
     data = []
     for document in documents:
         data.append(document)
-        print(document.id)
     return Response(json.dumps(data, cls=connector.AlchemyEncoder), mimetype="application/json")
 
 
@@ -210,6 +208,18 @@ def get_document(id):
     return Response(json.dumps(data, cls=connector.AlchemyEncoder), mimetype="application/json")
 
 
+@app.route('/document/<id>', methods=['DELETE'])
+def delete_document(id):
+    db_session = db.getSession(engine)
+    document = db_session.query(entities.Document).filter(entities.Document.id == id).first()
+
+    document.users = []
+    db_session.delete(document)
+    db_session.commit()
+
+    return Response(json.dumps([], cls=connector.AlchemyEncoder), mimetype="application/json")
+
+"""
 @app.route('/server/<id>', methods=['PUT'])
 def update_server(id):
     info = request.get_json(silent=True)
@@ -221,6 +231,7 @@ def update_server(id):
 
     db_session.add(server)
     db_session.commit()
+    """
 
 
 if __name__ == '__main__':

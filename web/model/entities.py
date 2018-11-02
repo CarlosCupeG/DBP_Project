@@ -3,6 +3,8 @@ from sqlalchemy.orm import relationship, backref
 from sqlalchemy.ext.declarative import declarative_base
 from web.database import connector
 
+import datetime
+
 
 class DocumentUser(connector.Manager.Base):
     __tablename__ = 'document_user'
@@ -26,7 +28,7 @@ class Document(connector.Manager.Base):
     __tablename__ = 'document'
     id = Column(Integer, Sequence('document_id_seq'), primary_key=True)
     name = Column(String(100))
-    date = Column(DateTime(timezone=True))
-    content = Column(String(10000))
+    date = Column(String, default=datetime.datetime.utcnow)
+    content = Column(String(100000))
     users = relationship('User', secondary='document_user')
 
