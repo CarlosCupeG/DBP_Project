@@ -20,6 +20,7 @@ var documentTemplate =
 var current_user_id;
 var current_document_id;
 
+
 $.getJSON("/current_user", function(data)
 {
     current_user_id = data['id'];
@@ -29,6 +30,7 @@ $.getJSON("/current_user", function(data)
 
 $('#exampleModal').on('show.bs.modal')
 
+
 function documentUser()
 {
     $.getJSON("/document_user/" + String(current_user_id), function(data)
@@ -36,22 +38,24 @@ function documentUser()
         var i = 0;
         $.each(data, function()
         {
-            documentContainer.innerHTML += documentTemplate.replace("Text.", data[i].name).replace("Date.", data[i].date).replace("Id.", data[i].id);
+            documentContainer.innerHTML += documentTemplate.replace("Text.", data[i].name).replace("Date.", data[i].date).replace("Id.", data[i].id).replace("Id.", data[i].id);
             i++;
         });
     });
+    document.getElementById("search-value").value = "";
 }
 
 
 function createDocument()
 {
     var name = "";
-    //var name = $('#recipient-name').val();
 
     while (name == "")
     {
-         name = document.getElementById("recipient-name").value;
+        name = document.getElementById("recipient-name").value;
     }
+
+
     $.ajax({
         url: '/document',
         type: 'POST',
@@ -60,7 +64,7 @@ function createDocument()
         data: JSON.stringify({
             "user": current_user_id,
             "name": name
-    	})
+    	}),
 	});
 }
 
@@ -79,24 +83,6 @@ function deleteDocument(id)
 	});
 }
 
-
-function findDocument(id)
-{
-    $.ajax({
-        url: '/document/' + id,
-        type: 'PUT',
-        dataType: 'json',
-        contentType: 'application/json',
-        data: JSON.stringify({
-            "pos_x": "Posicion en x",
-            "pos_y": "Posicion en y"
-    	})
-	});
-
-	currentDocument();
-}
-
-
 function currentDocument(id)
 {
     $.ajax({
@@ -106,6 +92,36 @@ function currentDocument(id)
         contentType: 'application/json',
         data: JSON.stringify({
             document: id
-    	})
+    	}),
+    	success: function(data) {
+	        location.href = "/editor";
+        }
 	});
+}
+
+
+function addUserDocument()
+{
+    var id = "";
+
+    while (id == "")
+    {
+        id = document.getElementById("search-value").value;
+    }
+
+    $.ajax({
+        url: '/document_user',
+        type: 'PUT',
+        dataType: 'json',
+        contentType: 'application/json',
+        data: JSON.stringify({
+            "document_id": id
+    	}),
+    	success: function(data) {
+    	    location.reload();
+    	}
+	});
+
+
+
 }

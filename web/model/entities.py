@@ -21,6 +21,7 @@ class User(connector.Manager.Base):
     password = Column(String(12))
     username = Column(String(12))
     status = Column(String(12))
+    text = Column(String(500))
     documents = relationship('Document', secondary='document_user')
 
 

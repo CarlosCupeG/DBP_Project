@@ -1,46 +1,52 @@
-<!--
-Author: W3layouts
-Author URL: http://w3layouts.com
-License: Creative Commons Attribution 3.0 Unported
-License URL: http://creativecommons.org/licenses/by/3.0/
--->
 <!DOCTYPE html>
 <html>
 
 <head>
-    <meta charset="UTF-8">
-    <title>Registro - UTEC Game</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <meta name="keywords" content="Gaming Login Form Widget Tab Form,Login Forms,Sign up Forms,Registration Forms,News letter Forms,Elements"/>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link rel="icon" href="../../../../favicon.ico">
 
-	<script type="application/x-javascript"> addEventListener("load", function() { setTimeout(hideURLbar, 0); }, false); function hideURLbar(){ window.scrollTo(0,1); } </script>
-    <link href="static/css/style.css" rel="stylesheet" type="text/css" media="all" />
-</head>
+    <title>Signin Template for Bootstrap</title>
 
-<body>
-	<div class="padding-all">
-		<div class="header">
-			<h1><img src="static/images/5.png" alt=" ">Registrate ahora</h1>
-		</div>
+    <!-- Bootstrap core CSS -->
+    <link href="static/css/bootstrap.min.css" rel="stylesheet">
 
-		<div class="design-w3l">
-			<div class="mail-form-agile">
-				<form action="users" method="post">
-					<input type="text" name="first_name" placeholder="Nombres" required=""/>
-                    <input type="text" name="last_name" placeholder="Apellidos" required=""/>
-					<input type="text" name="username" placeholder="Nombre de usuario" required=""/>
-                    <input type="text" name="email" placeholder="E-mail" required=""/>
-					<input type="password" name="password" class="padding" placeholder="Password" required=""/>
-					<input type="submit" value="submit">
-				</form>
-			</div>
-		  <div class="clear"> </div>
-		</div>
+    <!-- Custom styles for this template -->
+    <link href="static/css/login.css" rel="stylesheet">
+  </head>
+<body class="text-center">
+    <form class="form-signin" action="users" method="post">
+      <img class="mb-4" src="../../assets/brand/bootstrap-solid.svg" alt="" width="72" height="72">
 
-		<div class="footer">
-		<p>© 2018 Gaming Login form. All Rights Reserved | Design by  <a href="https://w3layouts.com/" >  w3layouts </a></p>
-		</div>
-	</div>
+
+		<h1 class="h3 mb-3 font-weight-normal">Register < /> </h1>
+      <label for="first_name" class="sr-only">First Names</label>
+	  <input type="text" id="first_name" name="first_name" class="form-control" placeholder="First Names" required="" autofocus="">
+
+	  <label for="last_name" class="sr-only">Last Name</label>
+      <input type="text" id="last_name" name="last_name" class="form-control" placeholder="Last Name" required="">
+
+      <label for="email" class="sr-only">Email address</label>
+      <input type="text" id="email" name="email" class="form-control" placeholder="Email address" required="">
+
+	  <label for="username" class="sr-only">Username</label>
+      <input type="text" id="username" name="username" class="form-control" placeholder="Username" required="">
+
+	  <label for="inputPassword" class="sr-only">Password</label>
+      <input type="password" id="inputPassword" name="password" class="form-control" placeholder="Password" required="">
+
+      <div class="checkbox mb-3">
+        <label>
+          <input type="checkbox" value="remember-me"> Remember me
+        </label>
+      </div>
+      <button class="btn btn-lg btn-primary btn-block" type="submit">Ingresar</button>
+      <p class="mt-5 mb-3 text-muted">© UTEC - 2018</p>
+    </form>
+
+
 </body>
+
 </html>

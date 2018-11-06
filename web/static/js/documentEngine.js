@@ -1,28 +1,69 @@
 var controlledEvent = false;
 var controlledKey = false;
-var msg = ''
+var current_document_id;
+var current_user_id;
+var cursor_pointer = '<span id=Cursor.>|</span>';
+var msg = '';
+var pre_msg = '';
+var pos_msg = '';
 
 window.onload = function() {
+
+    $.getJSON("/current_document", function(data)
+    {
+        current_document_id = data['id'];
+        control.innerHTML = data['content'];
+
+        msg = data['content'];
+    });
+
+    $.getJSON("/current_user", function(data)
+    {
+        current_user_id = data['id'];
+        cursor_pointer = cursor_pointer.replace("Cursor.", current_user_id);
+    });
+
     document.onkeypress = onKeyPress;
-    document.onkeydown = onKeyDown
-    document.onkeyup = onKeyUp;
+    document.onkeydown = onKeyDown;
 }
 
+
+function getDocument()
+{
+    $.getJSON('/current_document', function(data)
+    {
+        msg = data['content'];
+        control.innerHTML = msg;
+        getDocument();
+    });
+}
+//setInterval(getDocument() ,10);
+
+
+
 function onKeyPress(evObject) {
+    var s = $('.Editor-editor').wysiwyg();
+    var n = $('.Editor-editor').val();
+    console.log(s);
 
     var character = String.fromCharCode(evObject.which);
+    var cursor_pos = msg.search(cursor_pointer);
+
+    pre_msg = msg.substring(0, cursor_pos);
+    pos_msg = msg.substring(cursor_pos + cursor_pointer.length, msg.length);
 
     if (evObject.which!=0 && evObject.which!=8) {
-        ;
+
         if (evObject.which==32) {
-            msg += "&nbsp" ; }
+            updateDocument("&nbsp", "write", 1); }
         else if (evObject.which==13) {
-            msg += "<br/>"; }
+            updateDocument("<br/>", "write", 1); }
         else if (evObject.which==60) {
-            msg += "<span><</span>"; }
+            updateDocument("<span><</span>", "write", 1); }
         else {
-            msg += character; }
-        control.innerHTML = msg; }
+            updateDocument(character, "write", 1); }
+    }
+
     controlledEvent=true;
 }
 
@@ -30,112 +71,55 @@ function onKeyPress(evObject) {
 function onKeyDown(evObject) {
 
     var key = evObject.keyCode;
+    var len_pre = 1;
+    var len_pos = 1;
+    var character;
 
-    if (key == 8) {
-        if (msg.substring(msg.length - 5, msg.length) == "<br/>" || msg.substring(msg.length - 5, msg.length) == "&nbsp") {
-            msg = msg.substring(0, msg.length - 5); }
-        else if (msg.substring(msg.length - 14, msg.length) == "<span><</span>") {
-            msg = msg.substring(0, msg.length - 14); }
-        else {
-            msg = msg.substring(0, msg.length - 1); }
+    var cursor_pos = msg.search(cursor_pointer);
 
-        control.innerHTML = msg; }
-    console.log(msg);
+    pre_msg = msg.substring(0, cursor_pos);
+    pos_msg = msg.substring(cursor_pos + cursor_pointer.length, msg.length);
+
+    if (key == 8 || key == 37 || key == 39)
+    {
+        console.log(pre_msg.substring(pre_msg.length - 9, pre_msg.length));
+        if (pre_msg.substring(pre_msg.length - 5, pre_msg.length) == "<br/>" || pre_msg.substring(pre_msg.length - 5, pre_msg.length) == "&nbsp") {
+            len_pre = 5; }
+        else if (pre_msg.substring(pre_msg.length - 14, pre_msg.length) == "<span><</span>") {
+            len_pre = 14; }
+        else if (pre_msg.substring(pre_msg.length - 9, pre_msg.length) == ">|</span>") {
+            len_pre = 24; }
+
+        if (pos_msg.substring(0, 5) == "<br/>" || pos_msg.substring(0, 5) == "&nbsp") {
+            len_pos = 5; }
+        else if (pos_msg.substring(0, 14) == "<span><</span>") {
+            len_pos = 14; }
+        else if (pos_msg.substring(0, 9) == "<span id=") {
+            len_pos = 24; }
+
+
+        if (key == 8) {
+            updateDocument("", "delete", len_pre); }
+        if (key == 37) {
+            updateDocument("", "left", len_pre); }
+        if (key == 39) {
+            updateDocument("", "right", len_pos); }
+    }
     controlledEvent=true;
 }
 
 
-function onKeyUp(evObject) {
-
-}
-
-
-
-
-
-function selectElementText(el, win) {
-    win = win || window;
-    var doc = win.document, sel, range;
-    if (win.getSelection && doc.createRange) {
-        sel = win.getSelection();
-        range = doc.createRange();
-        range.selectNodeContents(el);
-        sel.removeAllRanges();
-        sel.addRange(range);
-    } else if (doc.body.createTextRange) {
-        range = doc.body.createTextRange();
-        range.moveToElementText(el);
-        range.select();
-    }
-}
-
-selectElementText(document.getElementById("someElement"));
-selectElementText(elementInIframe, iframe.contentWindow);
-
-
-
-function seleccionaTexto(element){
-    var doc = document,
-    text = doc.getElementById(element),
-    range,
-    selection;
-    if(doc.body.createTextRange){ //ms
-        range = doc.body.createTextRange();
-        range.moveToElementText(text);
-        range.select();
-    }else if(window.getSelection){ //all others
-        selection = window.getSelection();
-        range = doc.createRange();
-        range.selectNodeContents(text);
-        selection.removeAllRanges();
-     selection.addRange(range);
-    }
-}
-
-
-/*
-
-window.onload = function() { document.onkeypress = mostrarInformacionCaracter;
-
-document.onkeyup = mostrarInformacionTecla; }
-
-function mostrarInformacionCaracter(evObject)
+function updateDocument(value, event, len)
 {
-    var msg = ''; var elCaracter = String.fromCharCode(evObject.which);
-
-    if (evObject.which!=0 && evObject.which!=13) {
-
-    msg = 'Tecla pulsada: ' + elCaracter;
-
-    control.innerHTML += msg + '-----------------------------<br/>'; }
-
-    else { msg = 'Pulsada tecla especial';
-
-    control.innerHTML += msg + '-----------------------------<br/>';}
-
-    controlledEvent=true;
+    $.ajax({
+        url: '/document/' + current_document_id,
+        type: 'PUT',
+        dataType: 'json',
+        contentType: 'application/json',
+        data: JSON.stringify({
+            "value": value,
+            "event": event,
+            "len": len
+            }),
+        });
 }
-
-function mostrarInformacionTecla(evObject)
-{
-    var msg = ''; var teclaPulsada = evObject.keyCode;
-
-    if (teclaPulsada == 20) { msg = 'Pulsado caps lock (act/des mayúsculas)';}
-
-    else if (teclaPulsada == 16) { msg = 'Pulsado shift';}
-
-    else if (controlledEvent == false) { msg = 'Pulsada tecla especial';}
-
-    if (msg) {control.innerHTML += msg + '-----------------------------<br/>';}
-
-    controlledEvent = false;
-
-}
-
-*/
-
-
-
-//$(function()
-//{
-//});

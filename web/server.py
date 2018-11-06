@@ -36,16 +36,29 @@ def login():
     return render_template('login.html')
 
 
+@app.route('/logout', methods=['GET'])
+def logout():
+    db_session = db.getSession(engine)
+    user = db_session.query(entities.User).filter(entities.User.id == session['logged_user_id']).first()
+    user.status = "Offline"
+    db_session.add(user)
+    db_session.commit()
+    session.clear()
+    return redirect('/')
+
+
 @app.route('/editor', methods=['GET'])
 def editor():
-    return render_template('editor.html')
+    if "current_document_id" in session:
+        return render_template('editor.html')
+    redirect('/')
 
 
 @app.route('/current_user', methods=['GET'])
 def current_user():
     db_session = db.getSession(engine)
     user = db_session.query(entities.User).filter(entities.User.id == session['logged_user_id']).first()
-
+    db_session.commit()
     return Response(json.dumps(user, cls=connector.AlchemyEncoder), mimetype='application/json')
 
 
@@ -142,34 +155,30 @@ def delete_users(id):
     db_session.commit()
 
 
-@app.route('/do_document', methods=['POST'])
-def do_document():
-    name = request.form['name']
-    db_session = db.getSession(engine)
-    documents = db_session.query(entities.Document).filter(entities.Document.name == name)
-
-    for document in documents:
-        session['current_document_id'] = document.id
-        return redirect('/')
-    return render_template('control.html')
-
-
 @app.route('/current_document', methods=['POST'])
-def current_document():
+def current_document_assign():
     info = request.get_json(silent=True)
-
-    db_session = db.getSession(engine)
     session['current_document_id'] = info['document']
+    return Response(json.dumps([], cls=connector.AlchemyEncoder), mimetype="application/json")
 
-    return redirect('/')
+
+@app.route('/current_document', methods=['GET'])
+def current_document():
+    db_session = db.getSession(engine)
+    document = db_session.query(entities.Document).filter(entities.Document.id == session['current_document_id']).first()
+    db_session.commit()
+    return Response(json.dumps(document, cls=connector.AlchemyEncoder), mimetype="application/json")
 
 
 @app.route('/document', methods=['POST'])
 def create_document():
-    info = request.get_json(silent=True)
+    name = request.form['recipient']
+    print("hldas")
     db_session = db.getSession(engine)
-    user = db_session.query(entities.User).filter(entities.User.id == info['user']).first()
-    document = entities.Document(name=info['name'])
+    user = db_session.query(entities.User).filter(entities.User.id == session['logged_user_id']).first()
+    document = entities.Document(name=name)
+
+    document.content = '<span id=Cursor.>|</span>'.replace("Cursor.", str(user.id))
 
     document.users.append(user)
     db_session.add(document)
@@ -216,22 +225,59 @@ def delete_document(id):
     document.users = []
     db_session.delete(document)
     db_session.commit()
-
     return Response(json.dumps([], cls=connector.AlchemyEncoder), mimetype="application/json")
 
-"""
-@app.route('/server/<id>', methods=['PUT'])
-def update_server(id):
+
+@app.route('/document_user', methods=['PUT'])
+def add_user_document():
+    info = request.get_json(silent=True)
+    db_session = db.getSession(engine)
+    document = db_session.query(entities.Document).filter(entities.Document.id == info['document_id']).first()
+    user = db_session.query(entities.User).filter(entities.User.id == session['logged_user_id']).first()
+
+    if not document:
+        return Response(json.dumps([], cls=connector.AlchemyEncoder), mimetype="application/json")
+    try:
+        document.content += '<span id=Cursor.>|</span>'.replace("Cursor.", str(user.id))
+    except:
+        pass
+
+    document.users.append(user)
+    db_session.add(document)
+    db_session.commit()
+    return Response(json.dumps([], cls=connector.AlchemyEncoder), mimetype="application/json")
+
+
+@app.route('/document/<id>', methods=['PUT'])
+def update_document(id):
     info = request.get_json(silent=True)
 
     db_session = db.getSession(engine)
+    print(info)
+    document = db_session.query(entities.Document).filter(entities.Document.id == session['current_document_id']).first()
 
-    server = db_session.query(entities.Server).filter(entities.Server.id == id).first()
-    server.status = info['ststus']
+    pointer = '<span id=Curso.>|</span>'.replace('Curso.', str(session['logged_user_id']))
 
-    db_session.add(server)
+    if info['event'] == 'write':
+        document.content = document.content.replace(pointer, str(info['value']) + pointer)
+    elif info['event'] == 'delete':
+        pos = document.content.find(pointer)
+        document.content = document.content[:pos-info['len']] + document.content[pos:]
+    elif info['event'] == 'left':
+        pos = document.content.find(pointer)
+        character = document.content[pos - info['len']: pos]
+        print(character)
+        document.content = document.content[:pos - info['len']] + document.content[pos:]
+        document.content = document.content.replace(pointer, pointer + character)
+    elif info['event'] == 'right':
+        pos = document.content.find(pointer)
+        character = document.content[pos + len(pointer): pos + len(pointer) + info['len']]
+        document.content = document.content[:pos + len(pointer)] + document.content[pos + len(pointer) + info['len']:]
+        document.content = document.content.replace(pointer, character + pointer)
+
+    db_session.add(document)
     db_session.commit()
-    """
+    return Response(json.dumps([], cls=connector.AlchemyEncoder), mimetype="application/json")
 
 
 if __name__ == '__main__':

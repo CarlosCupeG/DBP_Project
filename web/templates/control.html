@@ -29,18 +29,20 @@
               <span aria-hidden="true">&times;</span>
             </button>
           </div>
+          <form action="document" method="post">
           <div class="modal-body">
-            <form>
+            <div >
               <div class="form-group">
                 <label for="recipient-name" class="col-form-label">Name</label>
-                <input type="text" class="form-control" id="recipient-name">
+                <input type="text" class="form-control" name="recipient" id="recipient-name">
               </div>
-            </form>
+            </div>
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-            <a href="/" onclick="createDocument()" class="btn btn-primary my-2">Create</a>
+            <button type="submit" class="btn btn-primary">Create</button>
           </div>
+          </form>
         </div>
       </div>
     </div>
@@ -66,13 +68,25 @@
       </div>
       <div class="navbar navbar-dark bg-dark shadow-sm">
         <div class="container d-flex justify-content-between">
-          <a href="#" class="navbar-brand d-flex align-items-center">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
-            <strong>Album</strong>
-          </a>
-          <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarHeader" aria-controls="navbarHeader" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-          </button>
+
+        <a class="navbar-brand" href="#">Carousel</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarCollapse">
+          <ul class="navbar-nav mr-auto">
+            <li class="nav-item active">
+              <a class="nav-link" href="#">Home <span class="sr-only">(current)</span></a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="/logout">Logout</a>
+            </li>
+          </ul>
+          <form class="form-inline mt-2 mt-md-0">
+            <input id="search-value" class="form-control mr-sm-2" placeholder="Search" aria-label="Search" type="text">
+            <button class="btn btn-outline-success my-2 my-sm-0" onclick="addUserDocument()">Search</button>
+          </form>
+        </div>
         </div>
       </div>
     </header>
@@ -84,9 +98,8 @@
           <h1 class="jumbotron-heading">Album example</h1>
           <p class="lead text-muted">Something short and leading about the collection below—its contents, the creator, etc. Make it short and sweet, but not too short so folks don't simply skip over it entirely.</p>
           <p>
-            <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#exampleModal" data-whatever="">Create new document</button>
+            <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#exampleModal">Create new document</button>
             <a href="/" onclick="createDocument()" class="btn btn-primary my-2">Main call to action</a>
-            <a href="#" class="btn btn-secondary my-2">Secondary action</a>
           </p>
         </div>
       </section>
