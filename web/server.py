@@ -122,6 +122,17 @@ def get_users(id):
     return Response(json.dumps(data, cls=connector.AlchemyEncoder), mimetype="application/json")
 
 
+@app.route('/users_document/<document_id>', methods=['GET'])
+def get_users_by_document(document_id):
+    db_session = db.getSession(engine)
+    users = db_session.query(entities.User).filter(entities.User.documents.any(entities.Document.id == document_id))
+
+    data = []
+    for user in users:
+        data.append(user)
+    return Response(json.dumps(data, cls=connector.AlchemyEncoder), mimetype="application/json")
+
+
 @app.route('/users/<id>', methods=['PUT'])
 def update_user(id):
     db_session = db.getSession(engine)
@@ -173,7 +184,6 @@ def current_document():
 @app.route('/document', methods=['POST'])
 def create_document():
     name = request.form['recipient']
-    print("hldas")
     db_session = db.getSession(engine)
     user = db_session.query(entities.User).filter(entities.User.id == session['logged_user_id']).first()
     document = entities.Document(name=name)
@@ -194,6 +204,7 @@ def get_all_documents():
     data = []
     for document in documents:
         data.append(document)
+
     return Response(json.dumps(data, cls=connector.AlchemyEncoder), mimetype="application/json")
 
 
@@ -204,6 +215,7 @@ def get_document_by_user(user_id):
     data = []
     for document in documents:
         data.append(document)
+    data.reverse()
     return Response(json.dumps(data, cls=connector.AlchemyEncoder), mimetype="application/json")
 
 
@@ -278,6 +290,35 @@ def update_document(id):
     db_session.add(document)
     db_session.commit()
     return Response(json.dumps([], cls=connector.AlchemyEncoder), mimetype="application/json")
+
+
+@app.route('/change', methods=['POST'])
+def create_change():
+    info = request.get_json(silent=True)
+    print(info)
+    db_session = db.getSession(engine)
+    document = db_session.query(entities.Document).filter(entities.Document.id == session['current_document_id']).first()
+    change = entities.Change(user=info['user'], val=info['value'], event=info['event'])
+
+    document.changes.append(change)
+
+    db_session.add(change)
+
+    db_session.commit()
+    return Response(json.dumps([], cls=connector.AlchemyEncoder), mimetype="application/json")
+
+
+@app.route('/document_change/<last>', methods=['GET'])
+def document_changes(last):
+    db_session = db.getSession(engine)
+    document = db_session.query(entities.Document).filter(session['current_document_id']).first()
+    data = []
+
+    for change in document.changes:
+        if change.id > int(last):
+            print(last)
+            data.append(change)
+    return Response(json.dumps(data, cls=connector.AlchemyEncoder), mimetype="application/json")
 
 
 if __name__ == '__main__':

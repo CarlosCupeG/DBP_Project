@@ -12,6 +12,21 @@ class DocumentUser(connector.Manager.Base):
     user_id = Column(Integer, ForeignKey('document.id'), primary_key=True)
 
 
+class DocumentChange(connector.Manager.Base):
+    __tablename__ = 'document_change'
+    document_id = Column(Integer, ForeignKey('change.id'), primary_key=True)
+    change_id = Column(Integer, ForeignKey('document.id'), primary_key=True)
+
+
+class Change(connector.Manager.Base):
+    __tablename__ = 'change'
+    id = Column(Integer, Sequence('change_id_seq'), primary_key=True)
+    user = Column(Integer)
+    val = Column(String(12))
+    event = Column(String(12))
+    documents = relationship('Document', secondary='document_change')
+
+
 class User(connector.Manager.Base):
     __tablename__ = 'user'
     id = Column(Integer, Sequence('user_id_seq'), primary_key=True)
@@ -21,7 +36,6 @@ class User(connector.Manager.Base):
     password = Column(String(12))
     username = Column(String(12))
     status = Column(String(12))
-    text = Column(String(500))
     documents = relationship('Document', secondary='document_user')
 
 
@@ -32,4 +46,6 @@ class Document(connector.Manager.Base):
     date = Column(String, default=datetime.datetime.utcnow)
     content = Column(String(100000))
     users = relationship('User', secondary='document_user')
+    changes = relationship('Change', secondary='document_change')
+
 
