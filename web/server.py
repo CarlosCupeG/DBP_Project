@@ -1,15 +1,17 @@
-from flask import Flask,render_template, request, session, redirect, Markup, Response
+from flask import Flask, render_template, request, session, redirect, Markup, Response
+from flask_socketio import SocketIO
+from flask_socketio import send, emit
 
 from web.database import connector
 from web.model import entities
 
 import json
-import datetime
 
 db = connector.Manager()
 engine = db.createEngine()
 
 app = Flask(__name__)
+socketio = SocketIO(app)
 app.secret_key = 'Legends never die'
 
 
@@ -122,7 +124,7 @@ def get_users(id):
     return Response(json.dumps(data, cls=connector.AlchemyEncoder), mimetype="application/json")
 
 
-@app.route('/users_document/<document_id>', methods=['GET'])
+@app.route('/user_document/<document_id>', methods=['GET'])
 def get_users_by_document(document_id):
     db_session = db.getSession(engine)
     users = db_session.query(entities.User).filter(entities.User.documents.any(entities.Document.id == document_id))
@@ -265,7 +267,6 @@ def update_document(id):
     info = request.get_json(silent=True)
 
     db_session = db.getSession(engine)
-    print(info)
     document = db_session.query(entities.Document).filter(entities.Document.id == session['current_document_id']).first()
 
     pointer = '<span id=Curso.>|</span>'.replace('Curso.', str(session['logged_user_id']))
@@ -278,7 +279,6 @@ def update_document(id):
     elif info['event'] == 'left':
         pos = document.content.find(pointer)
         character = document.content[pos - info['len']: pos]
-        print(character)
         document.content = document.content[:pos - info['len']] + document.content[pos:]
         document.content = document.content.replace(pointer, pointer + character)
     elif info['event'] == 'right':
@@ -295,7 +295,6 @@ def update_document(id):
 @app.route('/change', methods=['POST'])
 def create_change():
     info = request.get_json(silent=True)
-    print(info)
     db_session = db.getSession(engine)
     document = db_session.query(entities.Document).filter(entities.Document.id == session['current_document_id']).first()
     change = entities.Change(user=info['user'], val=info['value'], event=info['event'])
@@ -316,11 +315,23 @@ def document_changes(last):
 
     for change in document.changes:
         if change.id > int(last):
-            print(last)
             data.append(change)
     return Response(json.dumps(data, cls=connector.AlchemyEncoder), mimetype="application/json")
 
 
+@socketio.on('change_out')
+def socket_change(info):
+    db_session = db.getSession(engine)
+    document = db_session.query(entities.Document).filter(entities.Document.id == session['current_document_id']).first()
+    change = entities.Change(user=info['user'], val=info['value'], event=info['event'])
+
+    document.changes.append(change)
+
+    db_session.add(change)
+
+    db_session.commit()
+    emit('alert', info['user'], broadcast=True)
+
+
 if __name__ == '__main__':
-    # app.run(port=8080, threaded=True, host=('localhost'))       # Windows
     app.run(port=8080, threaded=True, host='0.0.0.0')       # Linux

@@ -7,8 +7,16 @@ var msg;
 var cursor_pos;
 var init = true;
 var last_change = 0;
+var con = false
 var pre_msg;
 var pos_msg;
+
+
+var socket = io.connect('http://' + document.domain + ':' + location.port);
+socket.on('connect', function() {
+    socket.emit('client_connected', {data: 'New client!'});
+});
+
 
 window.onload = function() {
 
@@ -24,22 +32,33 @@ window.onload = function() {
         msg = data['content'];
         $('#document-name').html(data['name']);
         control.innerHTML = msg;
+
+        var temp_text = "Shared with: ";
+        $.getJSON("/user_document/" + current_document_id, function(data)
+        {
+            var i = 0;
+            $.each(data, function()
+            {
+                temp_text = temp_text + data[i].first_name + ", ";
+                i++;
+            });
+            $('#doc-info').html(temp_text);
+        });
     });
 
     document.onkeypress = onKeyPress;
     document.onkeydown = onKeyDown;
-
-        getChanges();
-
+    getChanges();
 }
 
 
 
 
-function getChanges()
-{
+function getChanges() {
+
     $.getJSON('/document_change/' + last_change, function(data)
     {
+
         var i = 0;
         var character;
         $.each(data, function()
@@ -75,8 +94,6 @@ function getChanges()
             }
             i++;
         });
-        getChanges();
-        setTimeout(function(){}, 1000);
         init = false;
     });
 
@@ -165,15 +182,21 @@ function onKeyDown(evObject) {
 
 function createChange(value, event)
 {
-    $.ajax({
-        url: '/change',
-        type: 'POST',
-        dataType: 'json',
-        contentType: 'application/json',
-        data: JSON.stringify({
-            "value": value,
-            "event": event,
-            "user": current_user_id
-            }),
-        });
+    socket.emit('change_out', {
+        "value": value,
+        "event": event,
+        "user": current_user_id
+    });
 }
+
+
+$(document).ready(function() {
+    socket.on('alert', function(data) {
+        if (data == current_user_id) {return;}
+
+        getChanges();
+        console.log(data);
+        setTimeout(function(){}, 1500);
+
+    });
+});
