@@ -18,7 +18,7 @@ app.secret_key = 'Legends never die'
 @app.route('/', methods=['GET'])
 def index():
     if 'logged_user_id' in session:
-            return render_template('control.html')
+        return render_template('control.html')
     return render_template('index.html')
 
 
@@ -100,10 +100,10 @@ def create_user():
 
     db_session = db.getSession(engine)
 
-    #usernames = db_session.query(entities.User).filter(entities.User.username == username)
-    #emails = db_session.query(entities.User).filter(entities.User.email == email)
+    # usernames = db_session.query(entities.User).filter(entities.User.username == username)
+    # emails = db_session.query(entities.User).filter(entities.User.email == email)
 
-    #if usernames or emails:
+    # if usernames or emails:
     #    return Response(json.dumps([len(username), len(emails)], cls=connector.AlchemyEncoder), mimetype="application/json")
 
     db_session.add(user)
@@ -178,7 +178,8 @@ def current_document_assign():
 @app.route('/current_document', methods=['GET'])
 def current_document():
     db_session = db.getSession(engine)
-    document = db_session.query(entities.Document).filter(entities.Document.id == session['current_document_id']).first()
+    document = db_session.query(entities.Document).filter(
+        entities.Document.id == session['current_document_id']).first()
     db_session.commit()
     return Response(json.dumps(document, cls=connector.AlchemyEncoder), mimetype="application/json")
 
@@ -267,7 +268,8 @@ def update_document(id):
     info = request.get_json(silent=True)
 
     db_session = db.getSession(engine)
-    document = db_session.query(entities.Document).filter(entities.Document.id == session['current_document_id']).first()
+    document = db_session.query(entities.Document).filter(
+        entities.Document.id == session['current_document_id']).first()
 
     pointer = '<span id=Curso.>|</span>'.replace('Curso.', str(session['logged_user_id']))
 
@@ -275,7 +277,7 @@ def update_document(id):
         document.content = document.content.replace(pointer, str(info['value']) + pointer)
     elif info['event'] == 'delete':
         pos = document.content.find(pointer)
-        document.content = document.content[:pos-info['len']] + document.content[pos:]
+        document.content = document.content[:pos - info['len']] + document.content[pos:]
     elif info['event'] == 'left':
         pos = document.content.find(pointer)
         character = document.content[pos - info['len']: pos]
@@ -296,7 +298,8 @@ def update_document(id):
 def create_change():
     info = request.get_json(silent=True)
     db_session = db.getSession(engine)
-    document = db_session.query(entities.Document).filter(entities.Document.id == session['current_document_id']).first()
+    document = db_session.query(entities.Document).filter(
+        entities.Document.id == session['current_document_id']).first()
     change = entities.Change(user=info['user'], val=info['value'], event=info['event'])
 
     document.changes.append(change)
@@ -322,7 +325,8 @@ def document_changes(last):
 @socketio.on('change_out')
 def socket_change(info):
     db_session = db.getSession(engine)
-    document = db_session.query(entities.Document).filter(entities.Document.id == session['current_document_id']).first()
+    document = db_session.query(entities.Document).filter(
+        entities.Document.id == session['current_document_id']).first()
     change = entities.Change(user=info['user'], val=info['value'], event=info['event'])
 
     document.changes.append(change)
@@ -333,5 +337,123 @@ def socket_change(info):
     emit('alert', info['user'], broadcast=True)
 
 
+@app.route('/mobile_login', methods=["POST"])
+def mobile_login():
+    body = request.get_json(silent=True)
+    username = body['username']
+    password = body['password']
+    db_session = db.getSession(engine)
+    user = db_session.query(entities.User).filter(
+        entities.User.username == username and entities.User.password == password).first()
+
+    return Response(
+            json.dumps({'response': True, 'id': user.id, 'email': user.email}, cls=connector.AlchemyEncoder),
+            mimetype='application/json')
+
+@app.route('/mobile_signin', methods=["POST"])
+def mobile_signin():
+    body = request.get_json(silent=True)
+    username = body['username']
+    password = body['password']
+    email = body['email']
+    first_name = body['first_name']
+    last_name = body['last_name']
+    status = 'Offline'
+
+    db_session = db.getSession(engine)
+
+    user = entities.User(first_name=first_name,
+                         last_name=last_name,
+                         username=username,
+                         password=password,
+                         email=email,
+                         status=status)
+
+    db_session.add(user)
+    db_session.commit()
+
+    if user:
+        return Response(json.dumps({'response': True, }, cls=connector.AlchemyEncoder), mimetype='application/json')
+    else:
+        return Response(json.dumps({'response': False}, cls=connector.AlchemyEncoder), mimetype='application/json')
+
+
+@app.route('/mobile_logout', methods=['GET'])
+def mobile_logout():
+    db_session = db.getSession(engine)
+    user = db_session.query(entities.User).filter(entities.User.id == session['logged_user_id']).first()
+    user.status = "Offline"
+    db_session.add(user)
+    db_session.commit()
+    session.clear()
+    return Response(json.dumps({'response': True, }, cls=connector.AlchemyEncoder), mimetype='application/json')
+
+
+@app.route('/mobile_document_user/<user_id>', methods=['GET'])
+def mobile_get_document_by_user(user_id):
+    db_session = db.getSession(engine)
+    documents = db_session.query(entities.Document).filter(entities.Document.users.any(entities.User.id == user_id))
+    data = []
+    for document in documents:
+        data.append(document)
+    data.reverse()
+    return Response(json.dumps({'data': data, }, cls=connector.AlchemyEncoder), mimetype='application/json')
+
+
+@app.route('/mobile_document', methods=['POST'])
+def mobile_create_document():
+    body = request.get_json(silent=True)
+    name = body['recipient']
+    db_session = db.getSession(engine)
+    user = db_session.query(entities.User).filter(entities.User.id == body['user_id']).first()
+    document = entities.Document(name=name)
+
+    document.content = '<span id=Cursor.>|</span>'.replace("Cursor.", str(user.id))
+
+    document.users.append(user)
+    db_session.add(document)
+
+    db_session.commit()
+    return Response(json.dumps({'response': True, 'data':[document] }, cls=connector.AlchemyEncoder), mimetype='application/json')
+
+
+@app.route('/mobile_document_user', methods=['PUT'])
+def mobile_add_user_document():
+    info = request.get_json(silent=True)
+    db_session = db.getSession(engine)
+    document = db_session.query(entities.Document).filter(entities.Document.id == info['document_id']).first()
+    user = db_session.query(entities.User).filter(entities.User.id == session['logged_user_id']).first()
+
+    if not document:
+        return Response(json.dumps([], cls=connector.AlchemyEncoder), mimetype="application/json")
+    try:
+        document.content += '<span id=Cursor.>|</span>'.replace("Cursor.", str(user.id))
+    except:
+        pass
+
+    document.users.append(user)
+    db_session.add(document)
+    db_session.commit()
+    return Response(json.dumps({'response': True, 'data': [document]}, cls=connector.AlchemyEncoder),
+                    mimetype='application/json')
+
+
+@app.route('/mobile_change', methods=['POST'])
+def mobile_create_change():
+    info = request.get_json(silent=True)
+    db_session = db.getSession(engine)
+    document = db_session.query(entities.Document).filter(
+        entities.Document.id == info['document_id']).first()
+    change = entities.Change(user=info['user'], val=info['value'], event=info['event'])
+
+    document.changes.append(change)
+
+    db_session.add(change)
+
+    db_session.commit()
+    return Response(json.dumps([], cls=connector.AlchemyEncoder), mimetype="application/json")
+
+
+
 if __name__ == '__main__':
-    app.run(port=8080, threaded=True, host='0.0.0.0')       # Linux
+    app.run(port=8080, threaded=True, host='0.0.0.0')  # Linux
